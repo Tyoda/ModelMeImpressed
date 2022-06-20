@@ -23,14 +23,14 @@ You may also add any custom models to it via the "custom_pretty", and "custom_mo
 # Planned features
 These are features I plan to add (if they are truly viable), open an issue if you really want one and I'll start working on it!
 
-Two more actions: 1. Set back to normal model 2. Set to random model
+ - Two more actions: 1. Set back to normal model 2. Set to random model
 
-Add a text input to the Remodel action where you can easily enter any model you know
+ - Add a text input to the Remodel action where you can easily enter any model you know
 
-Walls could probably be transformed just the same
+ - Walls could probably be transformed just the same
 
-Solve having to push/rotate items after remodel
+ - Solve having to push/rotate items after remodel
 
-Automatically generate model list from some resource in the game.
+ - Automatically generate model list from some resource in the game.
 
-Solve player having to relog to see its own model change
+ - Solve player having to relog to see its own model change
