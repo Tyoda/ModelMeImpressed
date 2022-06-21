@@ -34,3 +34,5 @@ These are features I plan to add (if they are truly viable), open an issue if yo
  - Automatically generate model list from some resource in the game.
 
  - Solve player having to relog to see its own model change
+ 
+ - The models lists are messy, fix that somehow I guess
