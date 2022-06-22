@@ -6,6 +6,7 @@ import java.util.Properties;
 public class MMIOptions {
     private static int gmPowerNeeded = 2;
     private static boolean keepCustomModelInMemory = true;
+    private static boolean relogPlayers = true;
     public static HashMap<Long, String> customModels = null;
     public static HashMap<Integer, String> structurePM = new HashMap<>();
     public static HashMap<Integer, String> structureMM = new HashMap<>();
@@ -40,12 +41,22 @@ public class MMIOptions {
         return gmPowerNeeded;
     }
 
+    public static boolean isRelogPlayers() {
+        return relogPlayers;
+    }
+
+    public static void setRelogPlayers(boolean relogPlayers) {
+        MMIOptions.relogPlayers = relogPlayers;
+    }
+
     public void configure(Properties p){
         ModelMeImpressed.logger.info("Starting config");
 
         gmPowerNeeded = Integer.parseInt(p.getProperty("gmPowerNeeded", "2"));
 
         keepCustomModelInMemory = Boolean.parseBoolean(p.getProperty("keepCustomModelInMemory", "true"));
+
+        relogPlayers = Boolean.parseBoolean(p.getProperty("relogPlayers", "true"));
 
         configureHashMap(p, "custom",     MMIOptions.customPM,     MMIOptions.customMM);
 

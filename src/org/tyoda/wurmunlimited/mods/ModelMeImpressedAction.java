@@ -5,6 +5,7 @@ import com.wurmonline.server.behaviours.Action;
 import com.wurmonline.server.behaviours.ActionEntry;
 import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.items.Item;
+import com.wurmonline.server.items.TempItem;
 import com.wurmonline.server.players.PermissionsPlayerList;
 import com.wurmonline.server.players.Player;
 import com.wurmonline.server.questions.ChangeModelQuestion;
@@ -41,7 +42,7 @@ public class ModelMeImpressedAction implements ModAction, ActionPerformer, Behav
     }
 
     public List<ActionEntry> getBehavioursFor(Creature performer, Item target) {
-        if(performer.getPower() <= MMIOptions.getGmPowerNeeded()) return null;
+        if(performer.getPower() < MMIOptions.getGmPowerNeeded() || target instanceof TempItem) return null;
         return Collections.singletonList(actionEntry);
     }
 
