@@ -4,10 +4,6 @@ Wurm Unlimited mod to change the model of any Item/Creature/Player on the fly
 # Features
 Right click on any Item/Creature(/Player), choose the action "Remodel" and transform it to whatever model you choose
 
-With items you have to Push/Rotate them to refresh their models.
-
-After changing yourself through Character->Body you, sadly, have to relog to see the effects (although other players should not have to do so) 
-
 Flexibility: If the mod causes any issue/is not needed anymore, it may just be deleted and its effects will completely disappear. The database table in the modsupport will be left behind, this is not much of an issue.
 
 # ~Bugs~ Features 2.0
@@ -27,12 +23,15 @@ These are features I plan to add (if they are truly viable), open an issue if yo
 
  - Add a text input to the Remodel action where you can easily enter any model you know
 
- - Walls could probably be transformed just the same
+ - ~Walls could probably be transformed just the same~ Not possible
 
- - Solve having to push/rotate items after remodel
+ - ~Solve having to push/rotate items after remodel~ Done
 
  - Automatically generate model list from some resource in the game.
 
- - Solve player having to relog to see its own model change
+ - ~Solve player having to relog to see its own model change~ Done
  
  - The models lists are messy, fix that somehow I guess
+
+# What I can't do
+ - Getting the model name for structures(Walls, Florrs, Bridges, Fences) is handled entirely client-side. These 
