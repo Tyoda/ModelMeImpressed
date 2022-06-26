@@ -34,4 +34,4 @@ These are features I plan to add (if they are truly viable), open an issue if yo
  - The models lists are messy, fix that somehow I guess
 
 # What I can't do
- - Getting the model name for structures(Walls, Florrs, Bridges, Fences) is handled entirely client-side. These 
+ - Getting the model name for structures(Walls, Floors, Bridges, Fences) is handled entirely client-side.
