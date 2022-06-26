@@ -9,7 +9,7 @@ Flexibility: If the mod causes any issue/is not needed anymore, it may just be d
 # ~Bugs~ Features 2.0
 With <a href="https://github.com/bdew-wurm/threedee">threedee</a> placing something on an item and then changing its model will leave the item in place, where you probably could not put it on the new model, meaning you can place items <a href="https://wurmcw.ddns.net/images/after.png">where previously impossible</a>
 
-Transforming a felled tree apparently causes the new models to be huge, <a href="https://wurmcw.ddns.net/images/unicornforscale.png">and I mean HUGE</a>
+~Transforming a felled tree apparently causes the new models to be huge, <a href="https://wurmcw.ddns.net/images/unicornforscale.png">and I mean HUGE</a>~ nvm you can do this by changing the item's auxdata
 
 # What models are available?
 The mod contains every model found in the mappings.txt in the graphics.jar of the client. I am sure it is not perfect. Some are probably missing, because the devs forgot to add it, and some are probably broken. I have not personally tried out all the ~6K models available. Please open an issue or message me on discord(Tyoda#5412) if you find a problem.
