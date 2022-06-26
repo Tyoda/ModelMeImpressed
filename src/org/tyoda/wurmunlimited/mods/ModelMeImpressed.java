@@ -30,13 +30,13 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
     public static final MMIOptions options = new MMIOptions();
     private static boolean dbLoaded = false;
     private static final String dbName = "MMI_IDS";
+    public static final String version = "v1.2";
     public void preInit(){
         try {
             ClassPool classPool = HookManager.getInstance().getClassPool();
             CtClass ctCreature = classPool.getCtClass("com.wurmonline.server.creatures.Creature");
             CtClass ctItem = classPool.getCtClass("com.wurmonline.server.items.Item");
             CtClass ctPlayer = classPool.getCtClass("com.wurmonline.server.players.Player");
-
             inject(ctCreature);
             logger.info("Creature injected");
             inject(ctItem);
@@ -57,7 +57,7 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
     }
 
     public String getVersion(){
-        return "v1.0";
+        return version;
     }
 
     public void onServerStarted() {
@@ -75,15 +75,16 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
                 if(ModSupportDb.hasTable(con, dbName)){dbLoaded = true;}
                 else{ throw new RuntimeException(dbName+" database creation has failed."); }
             }else{dbLoaded = true;}
-        }catch(SQLException e) { DbConnector.returnConnection(con); throw new RuntimeException(e); }
+        }catch(SQLException e) {throw new RuntimeException(e);}
         finally{
             DbUtilities.closeDatabaseObjects(ps, null);
+            DbConnector.returnConnection(con);
         }
 
+        con = ModSupportDb.getModSupportDb();
         HashMap<Long, String> map = new HashMap<>();
-        sql = "SELECT * FROM " + dbName;
+        sql = "SELECT * FROM "+dbName;
         ResultSet rs = null;
-
         try{
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
@@ -92,7 +93,7 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
                 String modelName = rs.getString("MODELNAME");
                 map.put(wurmID, modelName);
             }
-        }catch(SQLException e){ DbConnector.returnConnection(con); throw new RuntimeException(e); }
+        }catch(SQLException e){throw new RuntimeException(e);}
         finally{
             DbUtilities.closeDatabaseObjects(ps, rs);
             DbConnector.returnConnection(con);
@@ -108,7 +109,7 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
         }
         if(MMIOptions.isKeepCustomModelInMemory()) MMIOptions.customModels = map;
     }
-    private boolean checkExists(long wurmID){
+    private static boolean checkExists(long wurmID){
         boolean exists = false;
         Connection creatureCon = null;
         PreparedStatement creaturePS = null;
@@ -120,22 +121,22 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
         PreparedStatement playerPS = null;
         ResultSet playerRS = null;
         try {
-            creatureCon = DbConnector.getCreatureDbCon();
-            String sql = "SELECT * FROM CREATURES WHERE WURMID=?";
-            creaturePS = creatureCon.prepareStatement(sql);
-            creaturePS.setLong(1, wurmID);
-            creatureRS = creaturePS.executeQuery();
+            itemCon = DbConnector.getItemDbCon();
+            String sql = "SELECT * FROM ITEMS WHERE WURMID=?";
+            itemPS = itemCon.prepareStatement(sql);
+            itemPS.setLong(1, wurmID);
+            itemRS = itemPS.executeQuery();
 
-            if(creatureRS.next()) exists = true;
+            if(itemRS.next()) exists = true;
 
             if(!exists){
-                itemCon = DbConnector.getItemDbCon();
-                sql = "SELECT * FROM ITEMS WHERE WURMID=?";
-                itemPS = itemCon.prepareStatement(sql);
-                itemPS.setLong(1, wurmID);
-                itemRS = itemPS.executeQuery();
+                creatureCon = DbConnector.getCreatureDbCon();
+                sql = "SELECT * FROM CREATURES WHERE WURMID=?";
+                creaturePS = creatureCon.prepareStatement(sql);
+                creaturePS.setLong(1, wurmID);
+                creatureRS = creaturePS.executeQuery();
 
-                if(itemRS.next()) exists = true;
+                if(creatureRS.next()) exists = true;
             }
 
             if(!exists){
@@ -153,20 +154,20 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
             DbUtilities.closeDatabaseObjects(itemPS, itemRS);
             DbUtilities.closeDatabaseObjects(playerPS, playerRS);
             DbConnector.returnConnection(creatureCon);
+            DbConnector.returnConnection(playerCon);
+            DbConnector.returnConnection(itemCon);
         }
         //logger.info("Item with id "+wurmID+(exists?"exists":"does not exist"));
         return exists;
     }
-    private void deleteEntry(long wurmID){
+    public static void deleteEntry(long wurmID){
         Connection con = ModSupportDb.getModSupportDb();
         PreparedStatement ps = null;
         String sql = "DELETE FROM "+dbName+" WHERE WURMID=?";
         try{
             ps = con.prepareStatement(sql);
             ps.setLong(1, wurmID);
-            int rs = ps.executeUpdate();
-            if(rs == 1) logger.info("Deleted item from database: "+wurmID);
-            else logger.warning("Something went wrong while trying to delete from database: "+wurmID+"result was"+rs);
+            ps.executeUpdate();
         }catch(SQLException e){ throw new RuntimeException(e); }
         finally{
             DbUtilities.closeDatabaseObjects(ps, null);
@@ -174,6 +175,7 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
         }
     }
     public static String getCustomModel(PermissionsPlayerList.ISettings obj){
+        if(obj == null) return null;
         String modelName = null;
         if(MMIOptions.isKeepCustomModelInMemory() && MMIOptions.customModels != null){
             modelName = MMIOptions.customModels.get(obj.getWurmId());
@@ -198,7 +200,7 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
     }
 
     public static void setCustomModel(PermissionsPlayerList.ISettings obj, String modelName) {
-        //Item and Creature(and therefore Player) all implement ISettings, which has the virtual method getWurmId()
+        //Item and Creature(and therefore Player) all implement ISettings, which has the interface method getWurmId()
         if (obj instanceof Creature) {
             ((Creature) obj).refreshVisible();
         }
@@ -225,16 +227,14 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
             if (rs != 1) {
                 logger.info(word + " modelname was unsuccessful for wurmid " + obj.getWurmId() + " and modelname " + modelName + ". rs was " + rs);
             }
-        } catch (SQLException e) {
-            DbConnector.returnConnection(con);
-            throw new RuntimeException(e);
-        } finally {
+        } catch (SQLException e) {throw new RuntimeException(e);} finally {
             if (obj instanceof Creature) {
                 ((Creature) obj).refreshVisible();
             }
             DbUtilities.closeDatabaseObjects(ps, null);
             DbConnector.returnConnection(con);
         }
+
         if (MMIOptions.isKeepCustomModelInMemory() && MMIOptions.customModels != null)
             MMIOptions.customModels.put(obj.getWurmId(), modelName);
         if (obj instanceof DbItem) {
