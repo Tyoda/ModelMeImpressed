@@ -1,52 +1,64 @@
 package com.wurmonline.server.questions;
 
 import com.wurmonline.server.creatures.Creature;
+import com.wurmonline.server.items.Item;
 import com.wurmonline.server.players.PermissionsPlayerList;
 import net.coldie.tools.BmlForm;
 import org.tyoda.wurmunlimited.mods.MMIOptions;
 import org.tyoda.wurmunlimited.mods.ModelMeImpressed;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Properties;
 
 public class ChangeModelQuestion extends Question {
 
     private final PermissionsPlayerList.ISettings target;
+    private final String targetname;
     public ChangeModelQuestion(Creature aResponder, String aTitle, String aQuestion, long aTarget, PermissionsPlayerList.ISettings target){
         super(aResponder, aTitle, aQuestion, 79, aTarget);
         this.target = target;
+        if(target instanceof Creature){
+            targetname = ((Creature)target).getModelName();
+        }else if(target instanceof Item){
+            targetname = ((Item)target).getModelName();
+        }else{
+            targetname = "current model name not found";
+        }
     }
 
     public void answer(Properties answer) {
         //for(String e : answer.stringPropertyNames()) ModelMeImpressed.logger.info(e + ": " + answer.getProperty(e));
+        MMIOptions options = ModelMeImpressed.options;
 
         String modelName = null;
-        if(answer.containsKey("submitCreatures")   && Boolean.parseBoolean(answer.getProperty("submitCreatures")))
-            modelName = MMIOptions.creatureMM.get(Integer.parseInt(answer.getProperty("creaturesNumber")));
+        if(answer.containsKey("submitString") && Boolean.parseBoolean(answer.getProperty("submitString")))
+            modelName = answer.getProperty("textfield");
+        else if(answer.containsKey("submitCreatures") && Boolean.parseBoolean(answer.getProperty("submitCreatures")))
+            modelName = options.creatureMM.get(Integer.parseInt(answer.getProperty("creaturesNumber")));
         else if(answer.containsKey("submitDecorations") && Boolean.parseBoolean(answer.getProperty("submitDecorations")))
-            modelName = MMIOptions.decorationMM.get(Integer.parseInt(answer.getProperty("decorationsNumber")));
+            modelName = options.decorationMM.get(Integer.parseInt(answer.getProperty("decorationsNumber")));
         else if(answer.containsKey("submitOthers") && Boolean.parseBoolean(answer.getProperty("submitOthers")))
-            modelName = MMIOptions.othersMM.get(Integer.parseInt(answer.getProperty("othersNumber")));
+            modelName = options.othersMM.get(Integer.parseInt(answer.getProperty("othersNumber")));
         else if(answer.containsKey("submitContainers") && Boolean.parseBoolean(answer.getProperty("submitContainers")))
-            modelName = MMIOptions.containerMM.get(Integer.parseInt(answer.getProperty("containersNumber")));
+            modelName = options.containerMM.get(Integer.parseInt(answer.getProperty("containersNumber")));
         else if(answer.containsKey("submitWeapons") && Boolean.parseBoolean(answer.getProperty("submitWeapons")))
-            modelName = MMIOptions.weaponMM.get(Integer.parseInt(answer.getProperty("weaponsNumber")));
+            modelName = options.weaponMM.get(Integer.parseInt(answer.getProperty("weaponsNumber")));
         else if(answer.containsKey("submitArmour") && Boolean.parseBoolean(answer.getProperty("submitArmour")))
-            modelName = MMIOptions.armourMM.get(Integer.parseInt(answer.getProperty("armourNumber")));
+            modelName = options.armourMM.get(Integer.parseInt(answer.getProperty("armourNumber")));
         else if(answer.containsKey("submitCorpses") && Boolean.parseBoolean(answer.getProperty("submitCorpses")))
-            modelName = MMIOptions.corpseMM.get(Integer.parseInt(answer.getProperty("corpsesNumber")));
+            modelName = options.corpseMM.get(Integer.parseInt(answer.getProperty("corpsesNumber")));
         else if(answer.containsKey("submitTools") && Boolean.parseBoolean(answer.getProperty("submitTools")))
-            modelName = MMIOptions.toolMM.get(Integer.parseInt(answer.getProperty("toolsNumber")));
+            modelName = options.toolMM.get(Integer.parseInt(answer.getProperty("toolsNumber")));
         else if(answer.containsKey("submitTutorial") && Boolean.parseBoolean(answer.getProperty("submitTutorial")))
-            modelName = MMIOptions.tutorialMM.get(Integer.parseInt(answer.getProperty("tutorialNumber")));
+            modelName = options.tutorialMM.get(Integer.parseInt(answer.getProperty("tutorialNumber")));
         else if(answer.containsKey("submitResources") && Boolean.parseBoolean(answer.getProperty("submitResources")))
-            modelName = MMIOptions.resourceMM.get(Integer.parseInt(answer.getProperty("resourcesNumber")));
+            modelName = options.resourceMM.get(Integer.parseInt(answer.getProperty("resourcesNumber")));
         else if(answer.containsKey("submitPiles") && Boolean.parseBoolean(answer.getProperty("submitPiles")))
-            modelName = MMIOptions.pileMM.get(Integer.parseInt(answer.getProperty("pilesNumber")));
+            modelName = options.pileMM.get(Integer.parseInt(answer.getProperty("pilesNumber")));
         else if(answer.containsKey("submitStructures") && Boolean.parseBoolean(answer.getProperty("submitStructures")))
-            modelName = MMIOptions.structureMM.get(Integer.parseInt(answer.getProperty("structuresNumber")));
+            modelName = options.structureMM.get(Integer.parseInt(answer.getProperty("structuresNumber")));
         else if(answer.containsKey("submitCustom") && Boolean.parseBoolean(answer.getProperty("submitCustom")))
-            modelName = MMIOptions.structureMM.get(Integer.parseInt(answer.getProperty("customNumber")));
+            modelName = options.structureMM.get(Integer.parseInt(answer.getProperty("customNumber")));
 
         if(modelName == null) throw new RuntimeException("String was null during model change in mod ModelMeImpressed");
         ModelMeImpressed.logger.info("Applying model " + modelName + " to " + target.getTypeName());
@@ -56,30 +68,37 @@ public class ChangeModelQuestion extends Question {
     public void sendQuestion() {
         BmlForm f = new BmlForm("");
         f.addHidden("id", String.valueOf(this.id));
-
+        MMIOptions options = ModelMeImpressed.options;
         f.addText("Hello there, fellow person!");
         f.addText("");
         f.addText("Please choose which model you wish to set this Creature/item to be!");
         f.addText("");
-        if(MMIOptions.creaturePM.size() > 0)    addDropdown(f, "submitCreatures", "Creatures", "creaturesNumber", MMIOptions.creaturePM);
-        if(MMIOptions.decorationPM.size() > 0)  addDropdown(f, "submitDecorations", "Decorations", "decorationsNumber", MMIOptions.decorationPM);
-        if(MMIOptions.othersPM.size() > 0)      addDropdown(f, "submitOthers", "Misc", "othersNumber", MMIOptions.othersPM);
-        if(MMIOptions.containerPM.size() > 0)   addDropdown(f, "submitContainers", "Containers", "containersNumber", MMIOptions.containerPM);
-        if(MMIOptions.weaponPM.size() > 0)      addDropdown(f, "submitWeapons", "Weapons", "weaponsNumber", MMIOptions.weaponPM);
-        if(MMIOptions.armourPM.size() > 0)      addDropdown(f, "submitArmour", "Armour", "armourNumber", MMIOptions.armourPM);
-        if(MMIOptions.corpsePM.size() > 0)      addDropdown(f, "submitCorpses", "Corpses", "corpsesNumber", MMIOptions.corpsePM);
-        if(MMIOptions.toolPM.size() > 0)        addDropdown(f, "submitTools", "Tools", "toolsNumber", MMIOptions.toolPM);
-        if(MMIOptions.tutorialPM.size() > 0)    addDropdown(f, "submitTutorial", "Tutorial", "tutorialNumber", MMIOptions.tutorialPM);
-        if(MMIOptions.resourcePM.size() > 0)    addDropdown(f, "submitResources", "Resources", "resourcesNumber", MMIOptions.resourcePM);
-        if(MMIOptions.pilePM.size() > 0)        addDropdown(f, "submitPiles", "Piles", "pilesNumber", MMIOptions.pilePM);
-        if(MMIOptions.structurePM.size() > 0)   addDropdown(f, "submitStructures", "Structures", "structuresNumber", MMIOptions.structurePM);
-        if(MMIOptions.customPM.size() > 0)      addDropdown(f, "submitCustom", "Custom", "customNumber", MMIOptions.customPM);
+
+        f.addRaw("harray{label{text='Write the model name:'}input{id='textfield';maxchars='128';text='"+targetname+"'}}");
+        f.beginHorizontalFlow();
+        f.addButton("Accept", "submitString");
+        f.endHorizontalFlow();
+        f.addText("Or Choose from the lists:");
+        f.addText("");
+        if(options.creaturePM.size() > 0)    addDropdown(f, "submitCreatures", "Creatures", "creaturesNumber", options.creaturePM);
+        if(options.decorationPM.size() > 0)  addDropdown(f, "submitDecorations", "Decorations", "decorationsNumber", options.decorationPM);
+        if(options.othersPM.size() > 0)      addDropdown(f, "submitOthers", "Misc", "othersNumber", options.othersPM);
+        if(options.containerPM.size() > 0)   addDropdown(f, "submitContainers", "Containers", "containersNumber", options.containerPM);
+        if(options.weaponPM.size() > 0)      addDropdown(f, "submitWeapons", "Weapons", "weaponsNumber", options.weaponPM);
+        if(options.armourPM.size() > 0)      addDropdown(f, "submitArmour", "Armour", "armourNumber", options.armourPM);
+        if(options.corpsePM.size() > 0)      addDropdown(f, "submitCorpses", "Corpses", "corpsesNumber", options.corpsePM);
+        if(options.toolPM.size() > 0)        addDropdown(f, "submitTools", "Tools", "toolsNumber", options.toolPM);
+        if(options.tutorialPM.size() > 0)    addDropdown(f, "submitTutorial", "Tutorial", "tutorialNumber", options.tutorialPM);
+        if(options.resourcePM.size() > 0)    addDropdown(f, "submitResources", "Resources", "resourcesNumber", options.resourcePM);
+        if(options.pilePM.size() > 0)        addDropdown(f, "submitPiles", "Piles", "pilesNumber", options.pilePM);
+        if(options.structurePM.size() > 0)   addDropdown(f, "submitStructures", "Structures", "structuresNumber", options.structurePM);
+        if(options.customPM.size() > 0)      addDropdown(f, "submitCustom", "Custom", "customNumber", options.customPM);
         this.getResponder().getCommunicator().sendBml(400, 500, true, true, f.toString(), 150, 150, 200, this.title);
     }
 
-    private void addDropdown(BmlForm f, String submit, String text, String dropdownID, HashMap<Integer, String> map){
+    private void addDropdown(BmlForm f, String submit, String text, String dropdownID, ArrayList<String> list){
         f.addRaw("harray{label{text='" + text + ":'}dropdown{id='" + dropdownID + "';options='");
-        f.addRaw(this.getXOptions(map));
+        f.addRaw(this.getXOptions(list));
         f.addRaw("'}}");
         f.beginHorizontalFlow();
         f.addButton("Accept", submit);
@@ -87,12 +106,12 @@ public class ChangeModelQuestion extends Question {
         f.addText(""); // end
     }
 
-    private String getXOptions(HashMap<Integer, String> map){
+    private String getXOptions(ArrayList<String> list){
         StringBuilder sb = new StringBuilder();
 
-        for(int i = 0; i < map.size(); ++i){
+        for(int i = 0; i < list.size(); ++i){
             if(i != 0) sb.append(',');
-            sb.append(map.get(i));
+            sb.append(list.get(i));
         }
 
         return sb.toString();

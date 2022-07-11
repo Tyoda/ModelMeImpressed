@@ -1,9 +1,10 @@
 package org.tyoda.wurmunlimited.mods;
 
 
-import com.wurmonline.server.DbConnector;
-import com.wurmonline.server.Server;
+import com.wurmonline.server.*;
 import com.wurmonline.server.creatures.Creature;
+import com.wurmonline.server.creatures.Creatures;
+import com.wurmonline.server.creatures.NoSuchCreatureException;
 import com.wurmonline.server.items.DbItem;
 import com.wurmonline.server.items.Item;
 import com.wurmonline.server.players.PermissionsPlayerList;
@@ -30,7 +31,7 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
     public static final MMIOptions options = new MMIOptions();
     private static boolean dbLoaded = false;
     private static final String dbName = "MMI_IDS";
-    public static final String version = "v1.2";
+    public static final String version = "v2.0";
     public void preInit(){
         try {
             ClassPool classPool = HookManager.getInstance().getClassPool();
@@ -62,7 +63,14 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
 
     public void onServerStarted() {
         ModActions.init();
-        ModActions.registerAction(new ModelMeImpressedAction());
+        options.setMmiBehaviour(new MMIBehaviour());
+        options.setRemodelAction(new RemodelAction());
+        options.setRandomModelAction(new RandomModelAction());
+        options.setResetModelAction(new ResetModelAction());
+        ModActions.registerAction(options.getMmiBehaviour());
+        ModActions.registerAction(options.getRemodelAction());
+        ModActions.registerAction(options.getRandomModelAction());
+        ModActions.registerAction(options.getResetModelAction());
 
         //create db if not exists
         Connection con = ModSupportDb.getModSupportDb();
@@ -81,6 +89,7 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
             DbConnector.returnConnection(con);
         }
 
+        //retrieve remodeled objects
         con = ModSupportDb.getModSupportDb();
         HashMap<Long, String> map = new HashMap<>();
         sql = "SELECT * FROM "+dbName;
@@ -98,8 +107,7 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
             DbUtilities.closeDatabaseObjects(ps, rs);
             DbConnector.returnConnection(con);
         }
-
-
+        //check if modeled object exists
         for(Iterator<Long> set = map.keySet().iterator(); set.hasNext();) {
             Long wurmID = set.next();
             if (!checkExists(wurmID)) {
@@ -107,7 +115,7 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
                 deleteEntry(wurmID);
             }
         }
-        if(MMIOptions.isKeepCustomModelInMemory()) MMIOptions.customModels = map;
+        if(options.isKeepCustomModelInMemory()) options.customModels = map;
     }
     private static boolean checkExists(long wurmID){
         boolean exists = false;
@@ -173,12 +181,27 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
             DbUtilities.closeDatabaseObjects(ps, null);
             DbConnector.returnConnection(con);
         }
+        if(options.isKeepCustomModelInMemory()){
+            options.customModels.remove(wurmID);
+        }
+        try {
+            Creature c = Creatures.getInstance().getCreature(wurmID);
+            refreshModel(c);
+        }catch(NoSuchCreatureException e){}
+        try{
+            Item item = Items.getItem(wurmID);
+            refreshModel(item);
+        }catch(NoSuchItemException e){}
+        try{
+            Player player = Players.getInstance().getPlayer(wurmID);
+            refreshModel(player);
+        }catch(NoSuchPlayerException e){}
     }
     public static String getCustomModel(PermissionsPlayerList.ISettings obj){
         if(obj == null) return null;
         String modelName = null;
-        if(MMIOptions.isKeepCustomModelInMemory() && MMIOptions.customModels != null){
-            modelName = MMIOptions.customModels.get(obj.getWurmId());
+        if(options.isKeepCustomModelInMemory() && options.customModels != null){
+            modelName = options.customModels.get(obj.getWurmId());
         }else {
             Connection con = ModSupportDb.getModSupportDb();
             PreparedStatement ps = null;
@@ -198,12 +221,20 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
         }
         return modelName;
     }
-
+    private static void refreshModel(PermissionsPlayerList.ISettings target){
+        if (target instanceof Player && options.isRelogPlayers()){
+            Server.getInstance().addCreatureToRemove((Creature)target);
+            Server.getInstance().addPlayer((Player)target);
+        }
+        else if(target instanceof Creature) {
+            ((Creature)target).refreshVisible();
+        }
+        else if (target instanceof DbItem) {
+            ((Item) target).updateIfGroundItem();
+        }
+    }
     public static void setCustomModel(PermissionsPlayerList.ISettings obj, String modelName) {
         //Item and Creature(and therefore Player) all implement ISettings, which has the interface method getWurmId()
-        if (obj instanceof Creature) {
-            ((Creature) obj).refreshVisible();
-        }
         Connection con = ModSupportDb.getModSupportDb();
         PreparedStatement ps = null;
         String prevModelName = ModelMeImpressed.getCustomModel(obj);
@@ -228,25 +259,15 @@ public class ModelMeImpressed implements WurmServerMod, ServerStartedListener, P
                 logger.info(word + " modelname was unsuccessful for wurmid " + obj.getWurmId() + " and modelname " + modelName + ". rs was " + rs);
             }
         } catch (SQLException e) {throw new RuntimeException(e);} finally {
-            if (obj instanceof Creature) {
-                ((Creature) obj).refreshVisible();
-            }
             DbUtilities.closeDatabaseObjects(ps, null);
             DbConnector.returnConnection(con);
         }
 
-        if (MMIOptions.isKeepCustomModelInMemory() && MMIOptions.customModels != null)
-            MMIOptions.customModels.put(obj.getWurmId(), modelName);
-        if (obj instanceof DbItem) {
-            ((Item) obj).updateIfGroundItem();
+        if (options.isKeepCustomModelInMemory() && options.customModels != null) {
+            options.customModels.put(obj.getWurmId(), modelName);
         }
-        if (obj instanceof Creature) {
-            ((Creature) obj).refreshVisible();
-        }
-        if (obj instanceof Player && MMIOptions.isRelogPlayers()){
-            Server.getInstance().addCreatureToRemove((Creature)obj);
-            Server.getInstance().addPlayer((Player)obj);
-        }
+
+        refreshModel(obj);
     }
     public void configure(Properties properties){
         options.configure(properties);
