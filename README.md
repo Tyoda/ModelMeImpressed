@@ -1,10 +1,12 @@
 # ModelMeImpressed
-Wurm Unlimited mod to change the model of any Item/Creature/Player on the fly
+Wurm Unlimited mod to change the model of any Item/Creature/Player(later referred to as object) on the fly
 
 # Features
-Right click on any Item/Creature(/Player), choose the action "Remodel" and transform it to whatever model you choose
+Right click on any object, choose the action "Remodel" and transform it to whatever model you choose
 
-Right click on any Item/Creature(/Player), choose the action "Random model" and transform it to a random model
+Right click on any object, choose the action "Random model" and transform it to a random model
+
+You can now reset each object's model to the original by right clicking on it and choosing reset model, or choosing browse and reviewing each custom model change
 
 Flexibility: If the mod causes any issue/is not needed anymore, it may just be deleted and its effects will completely disappear. The table in the modsupport database will be left behind. This is not an issue.
 
