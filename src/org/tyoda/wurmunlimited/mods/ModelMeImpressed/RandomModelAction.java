@@ -1,4 +1,4 @@
-package org.tyoda.wurmunlimited.mods;
+package org.tyoda.wurmunlimited.mods.ModelMeImpressed;
 
 import com.wurmonline.server.MiscConstants;
 import com.wurmonline.server.behaviours.Action;
@@ -8,14 +8,13 @@ import com.wurmonline.server.items.Item;
 import com.wurmonline.server.players.PermissionsPlayerList;
 import com.wurmonline.server.players.Player;
 import org.gotti.wurmunlimited.modsupport.actions.ActionPerformer;
-import org.gotti.wurmunlimited.modsupport.actions.BehaviourProvider;
 import org.gotti.wurmunlimited.modsupport.actions.ModAction;
 import org.gotti.wurmunlimited.modsupport.actions.ModActions;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-public class RandomModelAction implements ModAction, ActionPerformer, BehaviourProvider {
+public class RandomModelAction implements ModAction, ActionPerformer {
     private final short actionId = (short) ModActions.getNextActionId();
     private final ActionEntry actionEntry;
 
@@ -82,7 +81,7 @@ public class RandomModelAction implements ModAction, ActionPerformer, BehaviourP
         if(list.size() > 0) {
             modelname = list.get(random.nextInt(list.size()));
         }
-        ModelMeImpressed.logger.info("modelname: "+modelname);
+        ModelMeImpressed.logger.info("Random modelname: "+modelname);
         return modelname;
     }
 }

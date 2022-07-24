@@ -4,8 +4,8 @@ import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.items.Item;
 import com.wurmonline.server.players.PermissionsPlayerList;
 import net.coldie.tools.BmlForm;
-import org.tyoda.wurmunlimited.mods.MMIOptions;
-import org.tyoda.wurmunlimited.mods.ModelMeImpressed;
+import org.tyoda.wurmunlimited.mods.ModelMeImpressed.MMIOptions;
+import org.tyoda.wurmunlimited.mods.ModelMeImpressed.ModelMeImpressed;
 
 import java.util.ArrayList;
 import java.util.Properties;
@@ -74,10 +74,14 @@ public class ChangeModelQuestion extends Question {
         f.addText("Please choose which model you wish to set this Creature/item to be!");
         f.addText("");
 
-        f.addRaw("harray{label{text='Write the model name:'}input{id='textfield';maxchars='128';text='"+targetname+"'}}");
+        f.addText("");
+        f.addText("");
+        f.addLabel("Write the model name:");
+        f.addInput("textfield", 256, targetname);
         f.beginHorizontalFlow();
         f.addButton("Accept", "submitString");
         f.endHorizontalFlow();
+
         f.addText("Or Choose from the lists:");
         f.addText("");
         if(options.creaturePM.size() > 0)    addDropdown(f, "submitCreatures", "Creatures", "creaturesNumber", options.creaturePM);
